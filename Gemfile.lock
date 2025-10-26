@@ -1,0 +1,17 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    json (2.15.2)
+    nokogiri (1.18.10-arm64-darwin)
+      racc (~> 1.4)
+    racc (1.8.1)
+
+PLATFORMS
+  arm64-darwin-23
+
+DEPENDENCIES
+  json (~> 2.15)
+  nokogiri (~> 1.18)
+
+BUNDLED WITH
+   2.4.13
