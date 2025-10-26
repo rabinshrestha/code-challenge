@@ -1,27 +1,52 @@
 require 'nokogiri'
-require 'json'
+require 'ferrum'
 
 class PaintingExtractor
-  def initialize(html_content)
-    @doc = Nokogiri::HTML(html_content)
-
+  def initialize(html_file_path)
+    @html_file_path = File.expand_path(html_file_path)
   end
 
   def extract_paintings
-    paintings = []
+    browser = setup_browser
     
-    # Find carousel items - adjust selectors based on actual HTML
-    carousel_items.each do |item|
-      painting = extract_painting_data(item)
-      paintings << painting if painting
+    begin
+      browser.goto("file://#{@html_file_path}")
+      
+      # Wait for page/js to load
+      sleep(2)
+      # Get the fully rendered HTML after JavaScript execution
+      rendered_html = browser.body
+      
+      # Parse with Nokogiri
+      doc = Nokogiri::HTML(rendered_html)
+      paintings = extract_from_doc(doc)
+      { artworks: paintings }
+    rescue StandardError => e
+      puts "❌ Error during extraction: #{e.message}"
+      puts e.backtrace
+      { artworks: [] }
+    ensure
+      browser.quit if browser
     end
-    { artworks: paintings }
   end
 
   private
 
-  def carousel_items
-    @doc.css('.iELo6') 
+  def setup_browser
+    Ferrum::Browser.new(
+      timeout: 10
+    )
+  end
+
+  def extract_from_doc(doc)
+    paintings = []
+    items = doc.css('.iELo6')  # This is the actual class for painting items
+    items.each_with_index do |item, index|
+      painting = extract_painting_data(item)
+      paintings << painting
+    end
+    
+    paintings
   end
 
   def extract_painting_data(item)
