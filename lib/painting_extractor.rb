@@ -1,11 +1,12 @@
+# frozen_string_literal: true
+
 require 'nokogiri'
 require 'ferrum'
 
 class PaintingExtractor
   ITEMS_SELECTOR = '#search div.iELo6, g-scrolling-carousel div[jscontroller="A4LTfe"], .sinMW, .QjXCXd'
-  ITEM_NAME_SELECTOR = ".pgNMRc, .NJU16b, .B0jnne .FZPZX, .JjtOHd"
-  ITEM_EXTENSION_SELECTOR = ".cxzHyb, .ellip.yF4Rkc"
-
+  ITEM_NAME_SELECTOR = '.pgNMRc, .NJU16b, .B0jnne .FZPZX, .JjtOHd'
+  ITEM_EXTENSION_SELECTOR = '.cxzHyb, .ellip.yF4Rkc'
 
   def initialize(html_file_path)
     @html_file_path = File.expand_path(html_file_path)
@@ -16,7 +17,7 @@ class PaintingExtractor
     begin
       browser.goto("file://#{@html_file_path}")
       rendered_html = browser.body
-      
+
       # Parse with Nokogiri
       doc = Nokogiri::HTML(rendered_html)
       paintings = extract_from_doc(doc)
@@ -26,7 +27,7 @@ class PaintingExtractor
       puts e.backtrace
       { artworks: [] }
     ensure
-      browser.quit if browser
+      browser&.quit
     end
   end
 
@@ -39,7 +40,7 @@ class PaintingExtractor
   def extract_from_doc(doc)
     paintings = []
     items = doc.css(ITEMS_SELECTOR)
-    items.each_with_index do |item, index|
+    items.each_with_index do |item, _index|
       painting = extract_painting_data(item)
       paintings << painting if painting
     end
@@ -68,25 +69,23 @@ class PaintingExtractor
     extension_element = item.at_css(ITEM_EXTENSION_SELECTOR)&.text
 
     return [] if extension_element.nil? || extension_element.empty?
-    
+
     [extension_element]
   end
 
   def extract_link(item)
     link = item.at_css('a')&.attr('href')
-    
+
     # Handle relative URLs
-    if link && !link.start_with?('http')
-      link = "https://www.google.com#{link}"
-    end
-    
+    link = "https://www.google.com#{link}" if link && !link.start_with?('http')
+
     link
   end
 
   def extract_thumbnail(item)
     img = item.at_css('img')
     return nil unless img
- 
+
     img['data-src'] || img['src']
   end
 end
