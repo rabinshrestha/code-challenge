@@ -7,4 +7,3 @@ gem "nokogiri", "~> 1.18"
 group :test do
   gem 'pry'
 end
-

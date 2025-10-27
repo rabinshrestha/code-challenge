@@ -2,19 +2,19 @@ require 'nokogiri'
 require 'ferrum'
 
 class PaintingExtractor
+  ITEMS_SELECTOR = '#search div.iELo6, g-scrolling-carousel div[jscontroller="A4LTfe"], .sinMW, .QjXCXd'
+  ITEM_NAME_SELECTOR = ".pgNMRc, .NJU16b, .B0jnne .FZPZX, .JjtOHd"
+  ITEM_EXTENSION_SELECTOR = ".cxzHyb, .ellip.yF4Rkc"
+
+
   def initialize(html_file_path)
     @html_file_path = File.expand_path(html_file_path)
   end
 
   def extract_paintings
     browser = setup_browser
-    
     begin
       browser.goto("file://#{@html_file_path}")
-      
-      # Wait for page/js to load
-      sleep(2)
-      # Get the fully rendered HTML after JavaScript execution
       rendered_html = browser.body
       
       # Parse with Nokogiri
@@ -33,19 +33,16 @@ class PaintingExtractor
   private
 
   def setup_browser
-    Ferrum::Browser.new(
-      timeout: 10
-    )
+    Ferrum::Browser.new(timeout: 15)
   end
 
   def extract_from_doc(doc)
     paintings = []
-    items = doc.css('.iELo6')  # This is the actual class for painting items
+    items = doc.css(ITEMS_SELECTOR)
     items.each_with_index do |item, index|
       painting = extract_painting_data(item)
-      paintings << painting
+      paintings << painting if painting
     end
-    
     paintings
   end
 
@@ -58,31 +55,25 @@ class PaintingExtractor
       link: extract_link(item),
       image: extract_thumbnail(item)
     }
-    extendions = extract_extensions(item)
-    return_value[:extensions] = extendions if extendions.any?
+    extentions = extract_extensions(item)
+    return_value[:extensions] = extentions if extentions.any?
     return_value
   end
 
   def extract_name(item)
-    item.at_css('.pgNMRc')&.text&.strip
+    item.at_css(ITEM_NAME_SELECTOR)&.text&.strip
   end
 
   def extract_extensions(item)
-    extensions = []
+    extension_element = item.at_css(ITEM_EXTENSION_SELECTOR)&.text
+
+    return [] if extension_element.nil? || extension_element.empty?
     
-    # Look for date information
-    date_element = item.at_css('.cxzHyb')
-    if date_element
-      # Extract years (1889, 1890, etc.)
-      dates = date_element.text.scan(/\b\d{4}\b/)
-      extensions.concat(dates)
-    end
-    
-    extensions
+    [extension_element]
   end
 
   def extract_link(item)
-    link = item.at_css('a')&.[]('href')
+    link = item.at_css('a')&.attr('href')
     
     # Handle relative URLs
     if link && !link.start_with?('http')

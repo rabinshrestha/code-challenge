@@ -4,47 +4,53 @@ require 'pry'
 require_relative '../lib/painting_extractor'
 
 RSpec.describe PaintingExtractor do
-  let(:html_file_path) { 'files/van-gogh-paintings.html' }
   let(:extractor) { PaintingExtractor.new(html_file_path) }
-  let(:paintings) { extractor.extract_paintings[:artworks] }
+  subject { extractor.extract_paintings[:artworks] }
   
-  # Load expected output for comparison
-  let(:expected_json) { JSON.parse(File.read('files/expected-array.json'), symbolize_names: true) }
-  let(:expected_paintings) { expected_json[:artworks] }
-  
-  describe 'comparison with expected output' do
-    it 'extracts the correct number of paintings' do
-      expect(paintings.length).to eq(expected_paintings.length)
+  context 'comparison with expected output for van gogh paintings' do
+    let(:html_file_path) { 'files/van-gogh-paintings.html' }
+    let(:expected_json) { JSON.parse(File.read('files/expected-array.json'), symbolize_names: true) }
+
+    it 'cross check painting data' do
+      expect(subject).to eq(expected_json[:artworks])
     end
 
-    it 'extracts the same painting names as expected' do
-      extracted_names = paintings.map { |p| p[:name] }.sort
-      expected_names = expected_paintings.map { |p| p[:name] }.sort
-      
-      expect(extracted_names).to eq(expected_names)
-    end
+  end
 
-    it 'extracts the same painting link as expected' do
-      extracted_values = paintings.map { |p| p[:link] }.sort
-      expected_values = expected_paintings.map { |p| p[:link] }.sort
-      
-      expect(extracted_values).to eq(expected_values)
+  context 'data comparsion for pablo picasso artwork page' do
+    let(:html_file_path) { 'spec/fixtures/pablo-picasso-artwork/web.html' }
+    let(:expected_json) { JSON.parse(File.read('spec/fixtures/pablo-picasso-artwork/expected-array.json'), 
+      symbolize_names: true) }
+    it 'cross check data' do
+      expect(subject).to eq(expected_json)
     end
+  end
 
-    it 'extracts the same painting image as expected' do
-      extracted_values = paintings.map { |p| p[:image] }.sort
-      expected_values = expected_paintings.map { |p| p[:image] }.sort
-      expect(extracted_values).to eq(expected_values)
+  context 'data comparsion for top nepali movies page' do
+    let(:html_file_path) { 'spec/fixtures/top-nepali-movies/web.html' }
+    let(:expected_json) { JSON.parse(File.read('spec/fixtures/top-nepali-movies/expected-array.json'), 
+      symbolize_names: true) }
+    it 'cross check data' do
+      expect(subject).to eq(expected_json)
     end
-    
-    it 'extracts correct extensions for all paintings' do
-      paintings.each do |painting|
-        expected = expected_paintings.find { |p| p[:name] == painting[:name] }
-        next unless expected
-        
-        expect(painting[:extensions]).to eq(expected[:extensions]),
-          "Extensions mismatch for '#{painting[:name]}'"
-      end
+  end
+
+  context 'data comparsion for top actors page' do
+    let(:html_file_path) { 'spec/fixtures/top-actors/web.html' }
+    let(:expected_json) { JSON.parse(File.read('spec/fixtures/top-actors/expected-array.json'), 
+      symbolize_names: true) }
+    it 'cross check data' do
+    subject
+      expect(subject).to eq(expected_json)
+    end
+  end
+
+  context 'data comparsion for the matrix actors page' do
+    let(:html_file_path) { 'spec/fixtures/the-matrix-actors/web.html' }
+    let(:expected_json) { JSON.parse(File.read('spec/fixtures/the-matrix-actors/expected-array.json'), 
+      symbolize_names: true) }
+    it 'cross check data' do
+      expect(subject).to eq(expected_json)
     end
   end
 end
