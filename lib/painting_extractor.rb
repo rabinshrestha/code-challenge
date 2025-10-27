@@ -89,3 +89,16 @@ class PaintingExtractor
     img['data-src'] || img['src']
   end
 end
+
+if __FILE__ == $PROGRAM_NAME
+  if ARGV.empty?
+    puts "Usage: ruby lib/painting_extractor.rb path/to/file.html"
+    exit 1
+  end
+
+  html_file_path = ARGV[0]
+  extractor = PaintingExtractor.new(html_file_path)
+  result = extractor.extract_paintings
+
+  puts JSON.pretty_generate(result)
+end
