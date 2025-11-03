@@ -47,7 +47,6 @@ RSpec.describe PaintingExtractor do
                  symbolize_names: true)
     end
     it 'cross check data' do
-      subject
       expect(subject).to eq(expected_json)
     end
   end
